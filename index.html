@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>YUKI'S WARDROBE</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Noto+Sans+JP:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="hero">
+    <div>
+      <p class="eyebrow">MODEL COSTUME COLLECTION</p>
+      <h1>YUKI'S<br>WARDROBE</h1>
+      <p class="hero__lead">広告撮影のための衣装セレクション</p>
+    </div>
+  </header>
+
+  <main>
+    <section class="controls">
+      <div class="controls__top">
+        <label class="search">
+          <span>SEARCH</span>
+          <input id="searchInput" type="search" placeholder="色・柄・テイストなど">
+        </label>
+        <button id="resetButton" class="reset-button" type="button">条件をリセット</button>
+      </div>
+      <div class="filter-grid">
+        <label><span>CATEGORY</span><select id="categoryFilter"><option value="">すべて</option></select></label>
+        <label><span>COLOR</span><select id="colorFilter"><option value="">すべて</option></select></label>
+        <label><span>SLEEVE</span><select id="sleeveFilter"><option value="">すべて</option></select></label>
+        <label><span>PATTERN</span><select id="patternFilter"><option value="">すべて</option></select></label>
+      </div>
+    </section>
+
+    <section class="catalog">
+      <div class="catalog__heading">
+        <div><p class="section-kicker">COLLECTION</p><h2>衣装一覧</h2></div>
+        <p id="resultCount" class="result-count">読み込み中…</p>
+      </div>
+      <div id="status" class="status">衣装データを読み込んでいます。</div>
+      <div id="catalogGrid" class="catalog-grid"></div>
+    </section>
+  </main>
+
+  <aside id="selectionTray" class="selection-tray">
+    <div>
+      <p class="section-kicker">SELECTED ITEMS</p>
+      <strong><span id="selectionCount">0</span>点を選択中</strong>
+    </div>
+    <button id="viewSelectionButton" type="button">選択内容を見る</button>
+  </aside>
+
+  <dialog id="itemDialog" class="dialog">
+    <button class="dialog__close" type="button">×</button>
+    <div id="dialogContent"></div>
+  </dialog>
+
+  <dialog id="selectionDialog" class="dialog dialog--selection">
+    <button class="dialog__close" type="button">×</button>
+    <div class="selection-dialog-inner">
+      <p class="section-kicker">SELECTED ITEMS</p>
+      <h2>選択した衣装</h2>
+      <div id="selectionList" class="selection-list"></div>
+      <div class="selection-actions">
+        <button id="copySelectionButton" class="primary-button" type="button">選択内容をコピー</button>
+        <button id="clearSelectionButton" class="secondary-button" type="button">すべて解除</button>
+      </div>
+      <p id="copyMessage"></p>
+    </div>
+  </dialog>
+
+  <template id="cardTemplate">
+    <article class="card">
+      <button class="card__image-button" type="button">
+        <img class="card__image" alt="" loading="lazy">
+        <span class="card__placeholder"></span>
+      </button>
+      <div class="card__body">
+        <div>
+          <p class="card__meta"></p>
+          <h3 class="card__title"></h3>
+          <p class="card__tags"></p>
+        </div>
+        <button class="select-button" type="button">選択する</button>
+      </div>
+    </article>
+  </template>
+
+  <footer>YUKI'S WARDROBE — MODEL COSTUME COLLECTION</footer>
+  <script src="script.js"></script>
+</body>
+</html>
