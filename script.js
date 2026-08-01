@@ -1,43 +1,477 @@
 
 const API_URL = "https://script.google.com/macros/s/AKfycbwffzjetYEb8UzLJb2MAsGFKCWCNWGbccDubDdE2xNTuDk-unHNishI_75NiHnIwooF_A/exec";
-const NO_IMAGE_HTML = `<div class="no-image-visual"><div><svg viewBox="0 0 160 160" aria-hidden="true"><path d="M52 35c3-17 19-28 34-22 10 4 16 13 17 24" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/><path d="M80 55 30 96c-6 5-3 15 5 15h90c8 0 11-10 5-15L80 55Z" fill="none" stroke="currentColor" stroke-width="7" stroke-linejoin="round"/><path d="M80 55V43" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/></svg><strong>NO IMAGE</strong><small>写真を準備中です</small></div></div>`;
+const STORAGE_KEY = "yukiWardrobeFavoritesV3";
 
-const state={items:[],filtered:[],selected:new Set()};
-const q=s=>document.querySelector(s);
-const els={grid:q("#catalogGrid"),status:q("#status"),count:q("#resultCount"),search:q("#searchInput"),category:q("#categoryFilter"),color:q("#colorFilter"),sleeve:q("#sleeveFilter"),pattern:q("#patternFilter"),reset:q("#resetButton"),template:q("#cardTemplate"),itemDialog:q("#itemDialog"),dialogContent:q("#dialogContent"),tray:q("#selectionTray"),selectionCount:q("#selectionCount"),viewSelection:q("#viewSelectionButton"),selectionDialog:q("#selectionDialog"),selectionList:q("#selectionList"),copy:q("#copySelectionButton"),clear:q("#clearSelectionButton"),copyMessage:q("#copyMessage")};
+const NO_IMAGE_HTML = `
+  <div class="no-image-visual" aria-label="画像なし">
+    <div>
+      <svg viewBox="0 0 160 160" aria-hidden="true">
+        <path d="M52 35c3-17 19-28 34-22 10 4 16 13 17 24" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
+        <path d="M80 55 30 96c-6 5-3 15 5 15h90c8 0 11-10 5-15L80 55Z" fill="none" stroke="currentColor" stroke-width="7" stroke-linejoin="round"/>
+        <path d="M80 55V43" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
+      </svg>
+      <strong>NO IMAGE</strong>
+      <small>写真を準備中です</small>
+    </div>
+  </div>`;
 
-const field=(item,names)=>{for(const n of names){if(item[n]!==undefined&&item[n]!==null&&String(item[n]).trim()!=="")return String(item[n]).trim()}return""};
-const itemId=(item,i)=>field(item,["ID","Id","id"])||`item-${i}`;
-const itemName=item=>field(item,["サブカテゴリ","商品名","アイテム名","名称"])||field(item,["カテゴリ"])||"衣装";
+const state = {
+  items: [],
+  filtered: [],
+  favorites: new Set(loadFavorites())
+};
 
-function driveImageUrl(url){if(!url)return"";const t=String(url).trim();let m=t.match(/\/file\/d\/([a-zA-Z0-9_-]+)/)||t.match(/[?&]id=([a-zA-Z0-9_-]+)/);return m?`https://drive.google.com/thumbnail?id=${m[1]}&sz=w1200`:t}
-function imageUrls(item){return[
- field(item,["写真1","画像1","着用画像1","着用写真1","着用画像","着用写真"]),
- field(item,["写真2","画像2","着用画像2","着用写真2","ハンガー画像"]),
- field(item,["写真3","画像3","着用画像3","着用写真3"])
-].map(driveImageUrl)}
-function imageUrl(item){return imageUrls(item).find(Boolean)||""}
+const q = selector => document.querySelector(selector);
+const els = {
+  grid: q("#catalogGrid"),
+  status: q("#status"),
+  resultCount: q("#resultCount"),
+  search: q("#searchInput"),
+  category: q("#categoryFilter"),
+  color: q("#colorFilter"),
+  sleeve: q("#sleeveFilter"),
+  pattern: q("#patternFilter"),
+  reset: q("#resetButton"),
+  template: q("#cardTemplate"),
+  itemDialog: q("#itemDialog"),
+  dialogContent: q("#dialogContent"),
+  favoritesDialog: q("#favoritesDialog"),
+  favoritesList: q("#favoritesList"),
+  emptyFavorites: q("#emptyFavoritesMessage"),
+  favoriteTray: q("#favoriteTray"),
+  trayCount: q("#trayFavoriteCount"),
+  headerCount: q("#headerFavoriteCount"),
+  collectionCount: q("#collectionFavoriteCount"),
+  viewFavorites: q("#viewFavoritesButton"),
+  headerFavorites: q("#headerFavoritesButton"),
+  collectionFavorites: q("#collectionFavoritesButton"),
+  clientName: q("#clientName"),
+  projectName: q("#projectName"),
+  shootDate: q("#shootDate"),
+  clientNote: q("#clientNote"),
+  copyFavorites: q("#copyFavoritesButton"),
+  emailFavorites: q("#emailFavoritesButton"),
+  shareFavorites: q("#shareFavoritesButton"),
+  printFavorites: q("#printFavoritesButton"),
+  clearFavorites: q("#clearFavoritesButton"),
+  shareMessage: q("#shareMessage")
+};
 
-function unique(names){return[...new Set(state.items.map(i=>field(i,names)).filter(Boolean).flatMap(v=>v.split(/[、,／/]/).map(x=>x.trim())).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"ja"))}
-function fill(select,values){values.forEach(v=>{const o=document.createElement("option");o.value=v;o.textContent=v;select.append(o)})}
-function setupFilters(){fill(els.category,unique(["カテゴリ"]));fill(els.color,unique(["色","カラー"]));fill(els.sleeve,unique(["袖丈","袖"]));fill(els.pattern,unique(["柄"]))}
-function includesValue(actual,selected){if(!selected)return true;return actual.split(/[、,／/]/).map(v=>v.trim()).includes(selected)}
-function applyFilters(){const query=els.search.value.trim().toLowerCase();state.filtered=state.items.filter(item=>{const searchable=Object.entries(item).filter(([k])=>!["ブランド","サイズ"].includes(k)).map(([,v])=>v).join(" ").toLowerCase();return(!query||searchable.includes(query))&&includesValue(field(item,["カテゴリ"]),els.category.value)&&includesValue(field(item,["色","カラー"]),els.color.value)&&includesValue(field(item,["袖丈","袖"]),els.sleeve.value)&&includesValue(field(item,["柄"]),els.pattern.value)});render()}
+function loadFavorites() {
+  try {
+    const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    return Array.isArray(stored) ? stored.map(String) : [];
+  } catch {
+    return [];
+  }
+}
 
-function render(){els.grid.replaceChildren();els.status.textContent="";els.count.textContent=`${state.filtered.length} ITEMS`;if(!state.filtered.length){els.status.textContent="条件に合う衣装がありません。";return}state.filtered.forEach(item=>{const i=state.items.indexOf(item),id=itemId(item,i),f=els.template.content.cloneNode(true),card=f.querySelector(".card"),img=f.querySelector(".card__image"),ph=f.querySelector(".card__placeholder"),select=f.querySelector(".select-button"),url=imageUrl(item);ph.innerHTML=NO_IMAGE_HTML;f.querySelector(".card__meta").textContent=field(item,["カテゴリ"]);f.querySelector(".card__title").textContent=itemName(item);f.querySelector(".card__tags").textContent=[field(item,["色"]),field(item,["柄"]),field(item,["袖丈"])].filter(Boolean).join(" ・ ");if(url){img.src=url;img.alt=itemName(item);img.addEventListener("error",()=>card.classList.add("no-image"))}else card.classList.add("no-image");f.querySelector(".card__image-button").addEventListener("click",()=>openItem(item,id));updateSelect(select,id);select.addEventListener("click",()=>toggle(id));els.grid.append(f)})}
-function updateSelect(btn,id){const on=state.selected.has(id);btn.classList.toggle("is-selected",on);btn.textContent=on?"選択済み":"選択する"}
-function toggle(id){state.selected.has(id)?state.selected.delete(id):state.selected.add(id);updateTray();render()}
-function updateTray(){els.selectionCount.textContent=state.selected.size;els.tray.classList.toggle("is-visible",state.selected.size>0)}
+function saveFavorites() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify([...state.favorites]));
+}
 
-function openItem(item,id){const details=[["カテゴリ",field(item,["カテゴリ"])],["色",field(item,["色"])],["柄",field(item,["柄"])],["袖丈",field(item,["袖丈","袖"])],["季節",field(item,["季節"])],["テイスト",field(item,["テイスト"])],["素材",field(item,["素材"])]].filter(([,v])=>v);const urls=imageUrls(item);const slides=urls.map((u,n)=>`<div class="photo-gallery__slide">${u?`<img src="${u}" alt="${itemName(item)}の写真${n+1}">`:NO_IMAGE_HTML}</div>`).join("");els.dialogContent.innerHTML=`<div class="item-detail"><div class="photo-gallery"><button class="photo-gallery__arrow photo-gallery__arrow--prev" type="button" aria-label="前の写真">‹</button><div class="photo-gallery__track">${slides}</div><button class="photo-gallery__arrow photo-gallery__arrow--next" type="button" aria-label="次の写真">›</button><div class="photo-gallery__dots">${urls.map((_,i)=>`<span class="photo-gallery__dot${i===0?" is-active":""}"></span>`).join("")}</div></div><div class="item-detail__content"><p class="section-kicker">ITEM DETAIL</p><h2>${itemName(item)}</h2><dl class="detail-list">${details.map(([l,v])=>`<div><dt>${l}</dt><dd>${v}</dd></div>`).join("")}</dl>${field(item,["メモ"])?`<p>${field(item,["メモ"])}</p>`:""}<button id="dialogSelectButton" class="primary-button">${state.selected.has(id)?"選択を解除":"この衣装を選ぶ"}</button></div></div>`;const track=els.dialogContent.querySelector(".photo-gallery__track"),dots=[...els.dialogContent.querySelectorAll(".photo-gallery__dot")],prev=els.dialogContent.querySelector(".photo-gallery__arrow--prev"),next=els.dialogContent.querySelector(".photo-gallery__arrow--next");const move=direction=>track.scrollBy({left:direction*track.clientWidth,behavior:"smooth"});prev.addEventListener("click",()=>move(-1));next.addEventListener("click",()=>move(1));track.addEventListener("scroll",()=>requestAnimationFrame(()=>{const i=Math.round(track.scrollLeft/Math.max(track.clientWidth,1));dots.forEach((d,n)=>d.classList.toggle("is-active",i===n));prev.disabled=i<=0;next.disabled=i>=dots.length-1}),{passive:true});prev.disabled=true;els.dialogContent.querySelectorAll("img").forEach(img=>img.addEventListener("error",()=>img.parentElement.innerHTML=NO_IMAGE_HTML));q("#dialogSelectButton").addEventListener("click",()=>{toggle(id);els.itemDialog.close()});els.itemDialog.showModal()}
+const field = (item, names) => {
+  for (const name of names) {
+    if (item[name] !== undefined && item[name] !== null && String(item[name]).trim() !== "") {
+      return String(item[name]).trim();
+    }
+  }
+  return "";
+};
 
-function selectedItems(){return state.items.filter((item,i)=>state.selected.has(itemId(item,i)))}
-function showSelection(){els.selectionList.replaceChildren();selectedItems().forEach(item=>{const row=document.createElement("div"),url=imageUrl(item),id=itemId(item,state.items.indexOf(item));row.className="selection-item";row.innerHTML=`${url?`<img src="${url}" alt="">`:`<div>${NO_IMAGE_HTML}</div>`}<div><h3>${itemName(item)}</h3><p>${[field(item,["カテゴリ"]),field(item,["色"])].filter(Boolean).join(" / ")}</p></div><button>解除</button>`;row.querySelector("button").addEventListener("click",()=>{state.selected.delete(id);updateTray();render();showSelection()});els.selectionList.append(row)});els.selectionDialog.showModal()}
-async function copySelection(){const text="【希望衣装】\n"+selectedItems().map((item,i)=>`${field(item,["ID"])||i+1}｜${itemName(item)}｜${field(item,["カテゴリ"])}｜${field(item,["色"])}`).join("\n");try{await navigator.clipboard.writeText(text);els.copyMessage.textContent="コピーしました。"}catch{els.copyMessage.textContent="コピーできませんでした。"}}
+const itemId = (item, index = 0) => field(item, ["ID", "Id", "id"]) || `item-${index}`;
+const itemName = item =>
+  field(item, ["サブカテゴリ", "商品名", "アイテム名", "名称"]) ||
+  field(item, ["カテゴリ"]) || "衣装";
 
-[els.search,els.category,els.color,els.sleeve,els.pattern].forEach(x=>x.addEventListener("input",applyFilters));
-els.reset.addEventListener("click",()=>{els.search.value="";els.category.value="";els.color.value="";els.sleeve.value="";els.pattern.value="";applyFilters()});
-document.querySelectorAll(".dialog__close").forEach(b=>b.addEventListener("click",()=>b.closest("dialog").close()));
-els.viewSelection.addEventListener("click",showSelection);els.copy.addEventListener("click",copySelection);els.clear.addEventListener("click",()=>{state.selected.clear();updateTray();render();els.selectionDialog.close()});
+function driveImageUrl(url) {
+  if (!url) return "";
+  const text = String(url).trim();
+  let match = text.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+  if (!match) match = text.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  return match ? `https://drive.google.com/thumbnail?id=${match[1]}&sz=w1200` : text;
+}
 
-fetch(API_URL).then(r=>r.json()).then(data=>{state.items=data.filter(item=>Object.values(item).some(v=>String(v??"").trim()!==""));setupFilters();applyFilters()}).catch(()=>{els.status.textContent="衣装データを読み込めませんでした。";els.count.textContent="0 ITEMS"});
+function imageUrls(item) {
+  return [
+    field(item, ["写真1", "画像1", "着用画像1", "着用写真1", "着用画像", "着用写真"]),
+    field(item, ["写真2", "画像2", "着用画像2", "着用写真2", "ハンガー画像"]),
+    field(item, ["写真3", "画像3", "着用画像3", "着用写真3"])
+  ].map(driveImageUrl);
+}
+
+function imageUrl(item) {
+  return imageUrls(item).find(Boolean) || "";
+}
+
+function uniqueValues(names) {
+  return [...new Set(
+    state.items
+      .map(item => field(item, names))
+      .filter(Boolean)
+      .flatMap(value => value.split(/[、,／/]/).map(v => v.trim()))
+      .filter(Boolean)
+  )].sort((a, b) => a.localeCompare(b, "ja"));
+}
+
+function fillSelect(select, values) {
+  values.forEach(value => {
+    const option = document.createElement("option");
+    option.value = value;
+    option.textContent = value;
+    select.append(option);
+  });
+}
+
+function setupFilters() {
+  fillSelect(els.category, uniqueValues(["カテゴリ"]));
+  fillSelect(els.color, uniqueValues(["色", "カラー"]));
+  fillSelect(els.sleeve, uniqueValues(["袖丈", "袖"]));
+  fillSelect(els.pattern, uniqueValues(["柄"]));
+}
+
+function containsSelected(actual, selected) {
+  if (!selected) return true;
+  return actual.split(/[、,／/]/).map(v => v.trim()).includes(selected);
+}
+
+function applyFilters() {
+  const query = els.search.value.trim().toLowerCase();
+
+  state.filtered = state.items.filter(item => {
+    const searchable = Object.entries(item)
+      .filter(([key]) => !["ブランド", "サイズ"].includes(key))
+      .map(([, value]) => value).join(" ").toLowerCase();
+
+    return (!query || searchable.includes(query))
+      && containsSelected(field(item, ["カテゴリ"]), els.category.value)
+      && containsSelected(field(item, ["色", "カラー"]), els.color.value)
+      && containsSelected(field(item, ["袖丈", "袖"]), els.sleeve.value)
+      && containsSelected(field(item, ["柄"]), els.pattern.value);
+  });
+
+  renderCards();
+}
+
+function renderCards() {
+  els.grid.replaceChildren();
+  els.status.textContent = "";
+  els.resultCount.textContent = `${state.filtered.length} ITEMS`;
+
+  if (!state.filtered.length) {
+    els.status.textContent = "条件に合う衣装がありません。";
+    return;
+  }
+
+  state.filtered.forEach(item => {
+    const index = state.items.indexOf(item);
+    const id = String(itemId(item, index));
+    const fragment = els.template.content.cloneNode(true);
+    const card = fragment.querySelector(".card");
+    const img = fragment.querySelector(".card__image");
+    const placeholder = fragment.querySelector(".card__placeholder");
+    const heart = fragment.querySelector(".heart-button");
+    const url = imageUrl(item);
+
+    placeholder.innerHTML = NO_IMAGE_HTML;
+    fragment.querySelector(".card__meta").textContent = field(item, ["カテゴリ"]);
+    fragment.querySelector(".card__title").textContent = itemName(item);
+    fragment.querySelector(".card__tags").textContent =
+      [field(item, ["色"]), field(item, ["柄"]), field(item, ["袖丈"])]
+        .filter(Boolean).join(" ・ ");
+
+    if (url) {
+      img.src = url;
+      img.alt = `${itemName(item)}の写真`;
+      img.addEventListener("error", () => card.classList.add("no-image"));
+    } else {
+      card.classList.add("no-image");
+    }
+
+    updateHeart(heart, id);
+    heart.addEventListener("click", event => {
+      event.stopPropagation();
+      toggleFavorite(id);
+    });
+
+    fragment.querySelector(".card__image-button")
+      .addEventListener("click", () => openItem(item, id));
+
+    els.grid.append(fragment);
+  });
+}
+
+function updateHeart(button, id) {
+  const active = state.favorites.has(String(id));
+  button.classList.toggle("is-favorite", active);
+  button.textContent = active ? "♥" : "♡";
+  button.setAttribute("aria-label", active ? "お気に入りから解除" : "お気に入りに追加");
+}
+
+function toggleFavorite(id) {
+  const key = String(id);
+  state.favorites.has(key) ? state.favorites.delete(key) : state.favorites.add(key);
+  saveFavorites();
+  updateFavoriteUI();
+  renderCards();
+}
+
+function updateFavoriteUI() {
+  const count = state.favorites.size;
+  els.trayCount.textContent = count;
+  els.headerCount.textContent = count;
+  els.collectionCount.textContent = count;
+  els.favoriteTray.classList.toggle("is-visible", count > 0);
+}
+
+function setupGallery(gallery) {
+  const track = gallery.querySelector(".photo-gallery__track");
+  const dots = [...gallery.querySelectorAll(".photo-gallery__dot")];
+  const prev = gallery.querySelector(".photo-gallery__arrow--prev");
+  const next = gallery.querySelector(".photo-gallery__arrow--next");
+
+  const update = () => {
+    const index = Math.round(track.scrollLeft / Math.max(track.clientWidth, 1));
+    dots.forEach((dot, i) => dot.classList.toggle("is-active", i === index));
+    prev.disabled = index <= 0;
+    next.disabled = index >= dots.length - 1;
+  };
+
+  prev.addEventListener("click", () => track.scrollBy({ left: -track.clientWidth, behavior: "smooth" }));
+  next.addEventListener("click", () => track.scrollBy({ left: track.clientWidth, behavior: "smooth" }));
+  track.addEventListener("scroll", () => requestAnimationFrame(update), { passive: true });
+  gallery.querySelectorAll("img").forEach(img =>
+    img.addEventListener("error", () => img.parentElement.innerHTML = NO_IMAGE_HTML)
+  );
+  update();
+}
+
+function openItem(item, id) {
+  const details = [
+    ["カテゴリ", field(item, ["カテゴリ"])],
+    ["色", field(item, ["色"])],
+    ["柄", field(item, ["柄"])],
+    ["袖丈", field(item, ["袖丈", "袖"])],
+    ["季節", field(item, ["季節"])],
+    ["テイスト", field(item, ["テイスト"])],
+    ["素材", field(item, ["素材"])]
+  ].filter(([, value]) => value);
+
+  const urls = imageUrls(item);
+  const slides = urls.map((url, index) => `
+    <div class="photo-gallery__slide">
+      ${url ? `<img src="${url}" alt="${itemName(item)}の写真${index + 1}">` : NO_IMAGE_HTML}
+    </div>`).join("");
+
+  els.dialogContent.innerHTML = `
+    <div class="item-detail">
+      <div class="photo-gallery">
+        <button class="photo-gallery__arrow photo-gallery__arrow--prev" type="button" aria-label="前の写真">‹</button>
+        <div class="photo-gallery__track">${slides}</div>
+        <button class="photo-gallery__arrow photo-gallery__arrow--next" type="button" aria-label="次の写真">›</button>
+        <div class="photo-gallery__dots" aria-hidden="true">
+          ${urls.map((_, i) => `<span class="photo-gallery__dot${i === 0 ? " is-active" : ""}"></span>`).join("")}
+        </div>
+      </div>
+      <div class="item-detail__content">
+        <p class="section-kicker">ITEM DETAIL</p>
+        <h2>${itemName(item)}</h2>
+        <dl class="detail-list">
+          ${details.map(([label, value]) => `<div><dt>${label}</dt><dd>${value}</dd></div>`).join("")}
+        </dl>
+        ${field(item, ["メモ"]) ? `<p>${field(item, ["メモ"])}</p>` : ""}
+        <button id="detailFavoriteButton" class="primary-button favorite-detail-button" type="button"></button>
+      </div>
+    </div>`;
+
+  setupGallery(els.dialogContent.querySelector(".photo-gallery"));
+  const detailButton = q("#detailFavoriteButton");
+
+  const refreshDetailButton = () => {
+    const active = state.favorites.has(String(id));
+    detailButton.classList.toggle("is-favorite", active);
+    detailButton.textContent = active ? "♥ お気に入りから解除" : "♡ お気に入りに追加";
+  };
+
+  refreshDetailButton();
+  detailButton.addEventListener("click", () => {
+    toggleFavorite(id);
+    refreshDetailButton();
+  });
+
+  els.itemDialog.showModal();
+  document.body.classList.add("dialog-open");
+}
+
+function favoriteItems() {
+  return state.items.filter((item, index) =>
+    state.favorites.has(String(itemId(item, index)))
+  );
+}
+
+function renderFavoritesDialog() {
+  const items = favoriteItems();
+  els.favoritesList.replaceChildren();
+  els.emptyFavorites.hidden = items.length > 0;
+
+  items.forEach(item => {
+    const index = state.items.indexOf(item);
+    const id = String(itemId(item, index));
+    const row = document.createElement("article");
+    const url = imageUrl(item);
+    row.className = "favorite-row";
+    row.innerHTML = `
+      ${url ? `<img class="favorite-row__image" src="${url}" alt="">` : `<div class="favorite-row__image">${NO_IMAGE_HTML}</div>`}
+      <div>
+        <h3>${itemName(item)}</h3>
+        <p>No.${field(item, ["ID"]) || index + 1} ／ ${[field(item, ["カテゴリ"]), field(item, ["色"]), field(item, ["柄"])].filter(Boolean).join(" ／ ")}</p>
+      </div>
+      <button type="button">解除</button>`;
+
+    row.querySelector("button").addEventListener("click", () => {
+      state.favorites.delete(id);
+      saveFavorites();
+      updateFavoriteUI();
+      renderCards();
+      renderFavoritesDialog();
+    });
+    els.favoritesList.append(row);
+  });
+
+  els.shareMessage.textContent = "";
+}
+
+function openFavorites() {
+  renderFavoritesDialog();
+  els.favoritesDialog.showModal();
+  document.body.classList.add("dialog-open");
+}
+
+function buildShareText() {
+  const items = favoriteItems();
+  const lines = items.map((item, index) => {
+    const dataIndex = state.items.indexOf(item);
+    return `${index + 1}. No.${field(item, ["ID"]) || dataIndex + 1}｜${itemName(item)}｜${field(item, ["カテゴリ"])}｜${field(item, ["色"])}`;
+  });
+
+  const info = [
+    els.clientName.value.trim() ? `お名前・会社名：${els.clientName.value.trim()}` : "",
+    els.projectName.value.trim() ? `案件・撮影名：${els.projectName.value.trim()}` : "",
+    els.shootDate.value ? `撮影予定日：${els.shootDate.value}` : ""
+  ].filter(Boolean);
+
+  return [
+    "【YUKI'S WARDROBE 衣装候補】",
+    ...info,
+    "",
+    ...(lines.length ? lines : ["衣装候補はまだ選択されていません。"]),
+    els.clientNote.value.trim() ? `\nご要望・メモ：\n${els.clientNote.value.trim()}` : "",
+    "",
+    `サイト：${location.href.split("#")[0]}`
+  ].filter(value => value !== "").join("\n");
+}
+
+async function copyFavorites() {
+  try {
+    await navigator.clipboard.writeText(buildShareText());
+    els.shareMessage.textContent = "衣装候補一覧をコピーしました。LINEなどに貼り付けられます。";
+  } catch {
+    els.shareMessage.textContent = "コピーできませんでした。ブラウザの権限をご確認ください。";
+  }
+}
+
+function emailFavorites() {
+  const subject = encodeURIComponent(`衣装候補${els.projectName.value.trim() ? "｜" + els.projectName.value.trim() : ""}`);
+  const body = encodeURIComponent(buildShareText());
+  location.href = `mailto:?subject=${subject}&body=${body}`;
+}
+
+async function shareFavorites() {
+  const text = buildShareText();
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: "YUKI'S WARDROBE 衣装候補", text });
+      els.shareMessage.textContent = "共有画面を開きました。";
+    } catch (error) {
+      if (error.name !== "AbortError") els.shareMessage.textContent = "共有できませんでした。";
+    }
+  } else {
+    await copyFavorites();
+  }
+}
+
+function closeDialog(dialog) {
+  dialog.close();
+  document.body.classList.remove("dialog-open");
+}
+
+[els.search, els.category, els.color, els.sleeve, els.pattern]
+  .forEach(control => control.addEventListener("input", applyFilters));
+
+els.reset.addEventListener("click", () => {
+  els.search.value = "";
+  els.category.value = "";
+  els.color.value = "";
+  els.sleeve.value = "";
+  els.pattern.value = "";
+  applyFilters();
+});
+
+[els.viewFavorites, els.headerFavorites, els.collectionFavorites]
+  .forEach(button => button.addEventListener("click", openFavorites));
+
+document.querySelectorAll(".dialog__close").forEach(button =>
+  button.addEventListener("click", () => closeDialog(button.closest("dialog")))
+);
+
+[els.itemDialog, els.favoritesDialog].forEach(dialog =>
+  dialog.addEventListener("click", event => {
+    if (event.target === dialog) closeDialog(dialog);
+  })
+);
+
+els.copyFavorites.addEventListener("click", copyFavorites);
+els.emailFavorites.addEventListener("click", emailFavorites);
+els.shareFavorites.addEventListener("click", shareFavorites);
+els.printFavorites.addEventListener("click", () => window.print());
+els.clearFavorites.addEventListener("click", () => {
+  if (!state.favorites.size || confirm("お気に入りをすべて解除しますか？")) {
+    state.favorites.clear();
+    saveFavorites();
+    updateFavoriteUI();
+    renderCards();
+    renderFavoritesDialog();
+  }
+});
+
+const revealObserver = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add("is-visible");
+      revealObserver.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.12 });
+
+document.querySelectorAll(".reveal").forEach(element => revealObserver.observe(element));
+
+updateFavoriteUI();
+
+fetch(API_URL, { redirect: "follow" })
+  .then(response => {
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return response.json();
+  })
+  .then(data => {
+    if (!Array.isArray(data)) throw new Error("Invalid data");
+    state.items = data.filter(item =>
+      Object.values(item).some(value => String(value ?? "").trim() !== "")
+    );
+    setupFilters();
+    applyFilters();
+  })
+  .catch(error => {
+    console.error(error);
+    els.status.innerHTML = "衣装データを読み込めませんでした。<br>Apps Scriptの公開設定をご確認ください。";
+    els.resultCount.textContent = "0 ITEMS";
+  });

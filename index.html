@@ -3,6 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="広告撮影用の衣装を選べるYUKI'S WARDROBE">
+  <meta name="theme-color" content="#f4efe7">
   <title>YUKI'S WARDROBE</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -10,86 +12,165 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header class="hero">
-    <div>
-      <p class="eyebrow">MODEL COSTUME COLLECTION</p>
-      <h1>YUKI'S<br>WARDROBE</h1>
-      <p class="hero__lead">広告撮影のための衣装セレクション</p>
-    </div>
+  <header class="site-header">
+    <a class="brand" href="#top" aria-label="トップへ">YUKI'S WARDROBE</a>
+    <nav>
+      <a href="#about">ABOUT</a>
+      <a href="#collection">COLLECTION</a>
+      <button id="headerFavoritesButton" class="header-favorites" type="button" aria-label="お気に入りを開く">
+        ♡ <span id="headerFavoriteCount">0</span>
+      </button>
+    </nav>
   </header>
 
+  <section id="top" class="hero">
+    <img src="images/hero.jpg" alt="白いブラウスとベージュのスカートを着用したモデル" class="hero__image">
+    <div class="hero__veil"></div>
+    <div class="hero__content reveal">
+      <p class="eyebrow">MODEL COSTUME COLLECTION</p>
+      <h1>YUKI'S<br>WARDROBE</h1>
+      <p class="hero__lead">撮影イメージに合わせて、衣装をお選びください。</p>
+      <a class="hero__button" href="#collection">WARDROBE COLLECTION</a>
+    </div>
+    <a class="scroll-cue" href="#about" aria-label="下へスクロール">SCROLL <span>↓</span></a>
+  </section>
+
   <main>
-    <section class="controls">
-      <div class="controls__top">
-        <label class="search">
-          <span>SEARCH</span>
-          <input id="searchInput" type="search" placeholder="色・柄・テイストなど">
-        </label>
-        <button id="resetButton" class="reset-button" type="button">条件をリセット</button>
+    <section id="about" class="about section-shell">
+      <div class="about__intro reveal">
+        <p class="section-kicker">ABOUT THIS WARDROBE</p>
+        <h2>衣装選びを、<br>もっとスムーズに。</h2>
+        <p>
+          広告撮影のイメージに合わせて、持参可能な衣装をご覧いただけるワードローブサイトです。
+          気になる衣装は♡で保存し、最後に候補一覧をメールやメッセージでお送りいただけます。
+        </p>
       </div>
-      <div class="filter-grid">
-        <label><span>CATEGORY</span><select id="categoryFilter"><option value="">すべて</option></select></label>
-        <label><span>COLOR</span><select id="colorFilter"><option value="">すべて</option></select></label>
-        <label><span>SLEEVE</span><select id="sleeveFilter"><option value="">すべて</option></select></label>
-        <label><span>PATTERN</span><select id="patternFilter"><option value="">すべて</option></select></label>
+
+      <div class="editorial-grid">
+        <article class="editorial-card reveal">
+          <img src="images/natural.jpg" alt="街中を歩くナチュラルスタイル">
+          <div>
+            <p>SCENE 01</p>
+            <h3>Natural & Lifestyle</h3>
+          </div>
+        </article>
+        <article class="editorial-card editorial-card--lower reveal">
+          <img src="images/beauty.jpg" alt="自然光の中で微笑むビューティーイメージ">
+          <div>
+            <p>SCENE 02</p>
+            <h3>Beauty & Wellness</h3>
+          </div>
+        </article>
       </div>
     </section>
 
-    <section class="catalog">
+    <section class="howto">
+      <div class="section-shell">
+        <p class="section-kicker reveal">HOW TO USE</p>
+        <div class="steps">
+          <div class="step reveal"><span>01</span><h3>絞り込む</h3><p>カテゴリー・色・袖丈・柄から探します。</p></div>
+          <div class="step reveal"><span>02</span><h3>♡で保存</h3><p>気になる衣装をお気に入りに追加します。</p></div>
+          <div class="step reveal"><span>03</span><h3>一覧を送る</h3><p>候補を確認し、メールやLINEで共有します。</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="collection" class="collection section-shell">
+      <div class="collection__title reveal">
+        <p class="section-kicker">WARDROBE COLLECTION</p>
+        <h2>撮影衣装を選ぶ</h2>
+      </div>
+
+      <div class="controls reveal" aria-label="衣装の絞り込み">
+        <div class="controls__top">
+          <label class="search">
+            <span>SEARCH</span>
+            <input id="searchInput" type="search" placeholder="色・柄・テイストなど">
+          </label>
+          <button id="resetButton" class="text-button" type="button">条件をリセット</button>
+        </div>
+        <div class="filter-grid">
+          <label><span>CATEGORY</span><select id="categoryFilter"><option value="">すべて</option></select></label>
+          <label><span>COLOR</span><select id="colorFilter"><option value="">すべて</option></select></label>
+          <label><span>SLEEVE</span><select id="sleeveFilter"><option value="">すべて</option></select></label>
+          <label><span>PATTERN</span><select id="patternFilter"><option value="">すべて</option></select></label>
+        </div>
+      </div>
+
       <div class="catalog__heading">
-        <div><p class="section-kicker">COLLECTION</p><h2>衣装一覧</h2></div>
         <p id="resultCount" class="result-count">読み込み中…</p>
+        <button id="collectionFavoritesButton" class="favorite-summary-button" type="button">
+          ♡ お気に入り <span id="collectionFavoriteCount">0</span>
+        </button>
       </div>
       <div id="status" class="status">衣装データを読み込んでいます。</div>
-      <div id="catalogGrid" class="catalog-grid"></div>
+      <div id="catalogGrid" class="catalog-grid" aria-live="polite"></div>
     </section>
   </main>
 
-  <aside id="selectionTray" class="selection-tray">
+  <aside id="favoriteTray" class="favorite-tray" aria-label="お気に入り">
     <div>
-      <p class="section-kicker">SELECTED ITEMS</p>
-      <strong><span id="selectionCount">0</span>点を選択中</strong>
+      <small>FAVORITES</small>
+      <strong><span id="trayFavoriteCount">0</span>点を保存中</strong>
     </div>
-    <button id="viewSelectionButton" type="button">選択内容を見る</button>
+    <button id="viewFavoritesButton" type="button">候補一覧を見る</button>
   </aside>
 
   <dialog id="itemDialog" class="dialog">
-    <button class="dialog__close" type="button">×</button>
+    <button class="dialog__close" type="button" aria-label="閉じる">×</button>
     <div id="dialogContent"></div>
   </dialog>
 
-  <dialog id="selectionDialog" class="dialog dialog--selection">
-    <button class="dialog__close" type="button">×</button>
-    <div class="selection-dialog-inner">
-      <p class="section-kicker">SELECTED ITEMS</p>
-      <h2>選択した衣装</h2>
-      <div id="selectionList" class="selection-list"></div>
-      <div class="selection-actions">
-        <button id="copySelectionButton" class="primary-button" type="button">選択内容をコピー</button>
-        <button id="clearSelectionButton" class="secondary-button" type="button">すべて解除</button>
+  <dialog id="favoritesDialog" class="dialog favorites-dialog">
+    <button class="dialog__close" type="button" aria-label="閉じる">×</button>
+    <div class="favorites-dialog__inner">
+      <p class="section-kicker">FAVORITE LIST</p>
+      <h2>衣装候補リスト</h2>
+      <p class="dialog-lead">お名前や撮影情報を入力すると、送信用の文章に含まれます。</p>
+
+      <div class="client-form">
+        <label><span>お名前・会社名</span><input id="clientName" type="text" placeholder="例：〇〇株式会社　田中様"></label>
+        <label><span>案件・撮影名</span><input id="projectName" type="text" placeholder="例：化粧品Web広告"></label>
+        <label><span>撮影予定日</span><input id="shootDate" type="date"></label>
+        <label class="client-form__wide"><span>ご要望・メモ</span><textarea id="clientNote" rows="3" placeholder="例：第一候補は白系、予備としてベージュ系を希望"></textarea></label>
       </div>
-      <p id="copyMessage"></p>
+
+      <div id="favoritesList" class="favorites-list"></div>
+      <p id="emptyFavoritesMessage" class="empty-message">まだお気に入りがありません。</p>
+
+      <div class="share-actions">
+        <button id="copyFavoritesButton" class="primary-button" type="button">一覧をコピー</button>
+        <button id="emailFavoritesButton" class="secondary-button" type="button">メールで送る</button>
+        <button id="shareFavoritesButton" class="secondary-button" type="button">共有する</button>
+        <button id="printFavoritesButton" class="secondary-button" type="button">印刷・PDF保存</button>
+        <button id="clearFavoritesButton" class="text-button danger-button" type="button">すべて解除</button>
+      </div>
+      <p id="shareMessage" class="share-message" aria-live="polite"></p>
     </div>
   </dialog>
 
   <template id="cardTemplate">
     <article class="card">
-      <button class="card__image-button" type="button">
-        <img class="card__image" alt="" loading="lazy">
-        <span class="card__placeholder"></span>
-      </button>
+      <div class="card__media">
+        <button class="card__image-button" type="button" aria-label="詳細を見る">
+          <img class="card__image" alt="" loading="lazy">
+          <span class="card__placeholder"></span>
+        </button>
+        <button class="heart-button" type="button" aria-label="お気に入りに追加">♡</button>
+      </div>
       <div class="card__body">
-        <div>
-          <p class="card__meta"></p>
-          <h3 class="card__title"></h3>
-          <p class="card__tags"></p>
-        </div>
-        <button class="select-button" type="button">選択する</button>
+        <p class="card__meta"></p>
+        <h3 class="card__title"></h3>
+        <p class="card__tags"></p>
       </div>
     </article>
   </template>
 
-  <footer>YUKI'S WARDROBE — MODEL COSTUME COLLECTION</footer>
+  <footer>
+    <p class="footer-brand">YUKI'S WARDROBE</p>
+    <p>MODEL COSTUME COLLECTION</p>
+  </footer>
+
   <script src="script.js"></script>
 </body>
 </html>
