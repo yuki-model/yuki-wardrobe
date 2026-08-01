@@ -61,17 +61,7 @@ const els = {
   printShootDate: q("#printShootDate"),
   printClientNote: q("#printClientNote"),
   printShareText: q("#printShareText"),
-  printFavoritesList: q("#printFavoritesList"),
-  boardButton: q("#boardButton"),
-  boardDialog: q("#boardDialog"),
-  boardGrid: q("#boardGrid"),
-  boardClientName: q("#boardClientName"),
-  boardProjectName: q("#boardProjectName"),
-  boardShootDate: q("#boardShootDate"),
-  boardClientNote: q("#boardClientNote"),
-  printBoardButton: q("#printBoardButton"),
-  copyBoardTextButton: q("#copyBoardTextButton"),
-  boardMessage: q("#boardMessage")
+  printFavoritesList: q("#printFavoritesList")
 };
 
 function loadFavorites() {
@@ -351,7 +341,6 @@ function renderFavoritesDialog() {
       updateFavoriteUI();
       renderCards();
       renderFavoritesDialog();
-      if (els.boardDialog.open) buildCoordinateBoard();
     });
     els.favoritesList.append(row);
   });
@@ -486,104 +475,13 @@ function printFavoritesDocument() {
   Promise.all(waits).then(() => window.print());
 }
 
-
-function buildCoordinateBoard() {
-  const items = favoriteItems();
-
-  els.boardClientName.textContent =
-    els.clientName.value.trim() ? `お名前・会社名：${els.clientName.value.trim()}` : "";
-  els.boardProjectName.textContent =
-    els.projectName.value.trim() ? `案件・撮影名：${els.projectName.value.trim()}` : "";
-  els.boardShootDate.textContent =
-    els.shootDate.value ? `撮影予定日：${formatDateForPrint(els.shootDate.value)}` : "";
-  els.boardClientNote.textContent = els.clientNote.value.trim() || "なし";
-
-  els.boardGrid.replaceChildren();
-
-  if (!items.length) {
-    const empty = document.createElement("div");
-    empty.className = "board-empty";
-    empty.textContent = "お気に入りの衣装を選ぶと、ここにコーディネートボードが表示されます。";
-    els.boardGrid.append(empty);
-    return;
-  }
-
-  items.forEach((item, listIndex) => {
-    const dataIndex = state.items.indexOf(item);
-    const url = imageUrl(item);
-    const card = document.createElement("article");
-    card.className = "board-item";
-    card.innerHTML = `
-      <div class="board-item__image">
-        ${url ? `<img src="${url}" alt="${itemName(item)}">` : NO_IMAGE_HTML}
-      </div>
-      <div class="board-item__content">
-        <p class="board-item__category">${field(item, ["カテゴリ"]) || "ITEM"}</p>
-        <h4>${itemName(item)}</h4>
-        <p class="board-item__meta">
-          No.${field(item, ["ID"]) || dataIndex + 1}
-          ${field(item, ["色"]) ? ` ／ ${field(item, ["色"])}` : ""}
-          ${field(item, ["柄"]) ? ` ／ ${field(item, ["柄"])}` : ""}
-        </p>
-      </div>`;
-
-    const img = card.querySelector("img");
-    if (img) {
-      img.addEventListener("error", () => {
-        img.parentElement.innerHTML = NO_IMAGE_HTML;
-      });
-    }
-
-    els.boardGrid.append(card);
-  });
-}
-
-function openCoordinateBoard() {
-  buildCoordinateBoard();
-  els.boardMessage.textContent = "";
-  els.boardDialog.showModal();
-  document.body.classList.add("dialog-open");
-}
-
-function printCoordinateBoard() {
-  buildCoordinateBoard();
-
-  const images = [...els.boardGrid.querySelectorAll("img")];
-  const waits = images.map(img => {
-    if (img.complete) return Promise.resolve();
-    return new Promise(resolve => {
-      img.addEventListener("load", resolve, { once: true });
-      img.addEventListener("error", resolve, { once: true });
-      setTimeout(resolve, 1800);
-    });
-  });
-
-  Promise.all(waits).then(() => {
-    document.body.classList.add("printing-board");
-    window.print();
-    setTimeout(() => document.body.classList.remove("printing-board"), 500);
-  });
-}
-
-async function copyBoardText() {
-  try {
-    await navigator.clipboard.writeText(buildShareText());
-    els.boardMessage.textContent = "コーディネート内容をコピーしました。";
-  } catch {
-    els.boardMessage.textContent = "コピーできませんでした。";
-  }
-}
-
 function closeDialog(dialog) {
   dialog.close();
   document.body.classList.remove("dialog-open");
 }
 
 [els.clientName, els.projectName, els.shootDate, els.clientNote]
-  .forEach(control => control.addEventListener("input", () => {
-    buildPrintDocument();
-    if (els.boardDialog.open) buildCoordinateBoard();
-  }));
+  .forEach(control => control.addEventListener("input", buildPrintDocument));
 
 [els.search, els.category, els.color, els.sleeve, els.pattern]
   .forEach(control => control.addEventListener("input", applyFilters));
@@ -604,15 +502,11 @@ document.querySelectorAll(".dialog__close").forEach(button =>
   button.addEventListener("click", () => closeDialog(button.closest("dialog")))
 );
 
-[els.itemDialog, els.favoritesDialog, els.boardDialog].forEach(dialog =>
+[els.itemDialog, els.favoritesDialog].forEach(dialog =>
   dialog.addEventListener("click", event => {
     if (event.target === dialog) closeDialog(dialog);
   })
 );
-
-els.boardButton.addEventListener("click", openCoordinateBoard);
-els.printBoardButton.addEventListener("click", printCoordinateBoard);
-els.copyBoardTextButton.addEventListener("click", copyBoardText);
 
 els.copyFavorites.addEventListener("click", copyFavorites);
 els.emailFavorites.addEventListener("click", emailFavorites);
