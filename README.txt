@@ -1,34 +1,33 @@
-YUKI'S WARDROBE VERSION 3
+YUKI'S WARDROBE VERSION 4
 
 追加内容
-・提供写真を使ったブランドサイト風トップページ
-・ABOUT、利用方法、写真ギャラリー
-・衣装カードの♡お気に入り機能
-・お気に入りは同じ端末・ブラウザに保存
-・クライアント名、案件名、撮影日、メモを入力可能
-・衣装候補一覧のコピー
-・メール送信
-・スマホ共有機能
-・印刷／PDF保存
-・PCの左右矢印、スマホのスワイプ
-・サイズとブランドは非表示
+・印刷／PDFに送信用の文章を反映
+・お名前・会社名、案件・撮影名、撮影予定日、ご要望・メモ
+・選択衣装の写真、番号、カテゴリー、色、柄、袖丈
+・A4向けの印刷レイアウト
+・画像の読み込み後に印刷画面を開く仕様
 
-【GitHubへの更新方法】
-1. GitHubの yuki-wardrobe リポジトリを開く
+ご指定により追加していない機能
+・NEW／おすすめリボン
+・新しいお気に入り数表示機能
+
+トップ写真3枚の差し替え方法
+imagesフォルダーの写真を、同じファイル名で置き換えるだけです。
+
+hero.jpg
+  トップの大きな写真
+
+natural.jpg
+  ABOUT左側の写真
+
+beauty.jpg
+  ABOUT右側の写真
+
+GitHubで同じ名前の画像をアップロードしてCommit changesを押すと、
+Cloudflareが自動更新します。HTMLやJavaScriptの編集は不要です。
+
+更新方法
+1. GitHubの yuki-wardrobe を開く
 2. Add file → Upload files
-3. index.html、style.css、script.js と images フォルダー内の3枚をアップロード
-4. 同名ファイルは上書きされます
-5. Commit changes を押します
-6. Cloudflareが自動で更新します
-
-【重要】
-imagesフォルダーを含めてください。
-フォルダー構成：
-index.html
-style.css
-script.js
-README.txt
-images/
-  hero.jpg
-  natural.jpg
-  beauty.jpg
+3. VERSION 4の中身をアップロード
+4. Commit changes

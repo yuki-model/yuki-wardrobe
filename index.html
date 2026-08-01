@@ -135,6 +135,34 @@
         <label class="client-form__wide"><span>ご要望・メモ</span><textarea id="clientNote" rows="3" placeholder="例：第一候補は白系、予備としてベージュ系を希望"></textarea></label>
       </div>
 
+      <section id="printDocument" class="print-document" aria-label="印刷用衣装候補書">
+        <div class="print-document__header">
+          <div>
+            <p class="section-kicker">YUKI'S WARDROBE</p>
+            <h3>衣装候補一覧</h3>
+          </div>
+          <p id="printCreatedDate" class="print-created-date"></p>
+        </div>
+
+        <dl class="print-client-info">
+          <div><dt>お名前・会社名</dt><dd id="printClientName">未入力</dd></div>
+          <div><dt>案件・撮影名</dt><dd id="printProjectName">未入力</dd></div>
+          <div><dt>撮影予定日</dt><dd id="printShootDate">未入力</dd></div>
+        </dl>
+
+        <div id="printFavoritesList" class="print-favorites-list"></div>
+
+        <section class="print-note">
+          <h4>ご要望・メモ</h4>
+          <p id="printClientNote">なし</p>
+        </section>
+
+        <section class="print-message">
+          <h4>送信用文章</h4>
+          <pre id="printShareText"></pre>
+        </section>
+      </section>
+
       <div id="favoritesList" class="favorites-list"></div>
       <p id="emptyFavoritesMessage" class="empty-message">まだお気に入りがありません。</p>
 

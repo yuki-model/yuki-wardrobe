@@ -54,7 +54,14 @@ const els = {
   shareFavorites: q("#shareFavoritesButton"),
   printFavorites: q("#printFavoritesButton"),
   clearFavorites: q("#clearFavoritesButton"),
-  shareMessage: q("#shareMessage")
+  shareMessage: q("#shareMessage"),
+  printCreatedDate: q("#printCreatedDate"),
+  printClientName: q("#printClientName"),
+  printProjectName: q("#printProjectName"),
+  printShootDate: q("#printShootDate"),
+  printClientNote: q("#printClientNote"),
+  printShareText: q("#printShareText"),
+  printFavoritesList: q("#printFavoritesList")
 };
 
 function loadFavorites() {
@@ -343,6 +350,7 @@ function renderFavoritesDialog() {
 
 function openFavorites() {
   renderFavoritesDialog();
+  buildPrintDocument();
   els.favoritesDialog.showModal();
   document.body.classList.add("dialog-open");
 }
@@ -400,10 +408,80 @@ async function shareFavorites() {
   }
 }
 
+
+function formatDateForPrint(value) {
+  if (!value) return "未入力";
+  const [year, month, day] = value.split("-");
+  return `${year}年${Number(month)}月${Number(day)}日`;
+}
+
+function buildPrintDocument() {
+  const items = favoriteItems();
+  const now = new Date();
+
+  els.printCreatedDate.textContent =
+    `作成日：${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日`;
+
+  els.printClientName.textContent = els.clientName.value.trim() || "未入力";
+  els.printProjectName.textContent = els.projectName.value.trim() || "未入力";
+  els.printShootDate.textContent = formatDateForPrint(els.shootDate.value);
+  els.printClientNote.textContent = els.clientNote.value.trim() || "なし";
+  els.printShareText.textContent = buildShareText();
+
+  els.printFavoritesList.replaceChildren();
+
+  items.forEach((item, listIndex) => {
+    const dataIndex = state.items.indexOf(item);
+    const url = imageUrl(item);
+    const card = document.createElement("article");
+    card.className = "print-favorite-card";
+
+    card.innerHTML = `
+      ${url
+        ? `<img src="${url}" alt="">`
+        : `<div class="print-favorite-card__placeholder">${NO_IMAGE_HTML}</div>`}
+      <div>
+        <h4>${listIndex + 1}. ${itemName(item)}</h4>
+        <p>No.${field(item, ["ID"]) || dataIndex + 1}</p>
+        <p>${[
+          field(item, ["カテゴリ"]),
+          field(item, ["色"]),
+          field(item, ["柄"]),
+          field(item, ["袖丈"])
+        ].filter(Boolean).join(" ／ ")}</p>
+      </div>`;
+
+    els.printFavoritesList.append(card);
+  });
+
+  if (!items.length) {
+    const empty = document.createElement("p");
+    empty.textContent = "衣装候補はまだ選択されていません。";
+    els.printFavoritesList.append(empty);
+  }
+}
+
+function printFavoritesDocument() {
+  buildPrintDocument();
+  const images = [...els.printFavoritesList.querySelectorAll("img")];
+  const waits = images.map(img => {
+    if (img.complete) return Promise.resolve();
+    return new Promise(resolve => {
+      img.addEventListener("load", resolve, { once: true });
+      img.addEventListener("error", resolve, { once: true });
+      setTimeout(resolve, 1800);
+    });
+  });
+  Promise.all(waits).then(() => window.print());
+}
+
 function closeDialog(dialog) {
   dialog.close();
   document.body.classList.remove("dialog-open");
 }
+
+[els.clientName, els.projectName, els.shootDate, els.clientNote]
+  .forEach(control => control.addEventListener("input", buildPrintDocument));
 
 [els.search, els.category, els.color, els.sleeve, els.pattern]
   .forEach(control => control.addEventListener("input", applyFilters));
@@ -433,7 +511,7 @@ document.querySelectorAll(".dialog__close").forEach(button =>
 els.copyFavorites.addEventListener("click", copyFavorites);
 els.emailFavorites.addEventListener("click", emailFavorites);
 els.shareFavorites.addEventListener("click", shareFavorites);
-els.printFavorites.addEventListener("click", () => window.print());
+els.printFavorites.addEventListener("click", printFavoritesDocument);
 els.clearFavorites.addEventListener("click", () => {
   if (!state.favorites.size || confirm("お気に入りをすべて解除しますか？")) {
     state.favorites.clear();
