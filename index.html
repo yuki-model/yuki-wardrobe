@@ -170,10 +170,52 @@
         <button id="copyFavoritesButton" class="primary-button" type="button">一覧をコピー</button>
         <button id="emailFavoritesButton" class="secondary-button" type="button">メールで送る</button>
         <button id="shareFavoritesButton" class="secondary-button" type="button">共有する</button>
+        <button id="boardButton" class="secondary-button" type="button">コーディネートボード</button>
         <button id="printFavoritesButton" class="secondary-button" type="button">印刷・PDF保存</button>
         <button id="clearFavoritesButton" class="text-button danger-button" type="button">すべて解除</button>
       </div>
       <p id="shareMessage" class="share-message" aria-live="polite"></p>
+    </div>
+  </dialog>
+
+
+  <dialog id="boardDialog" class="dialog board-dialog">
+    <button class="dialog__close" type="button" aria-label="閉じる">×</button>
+    <div class="board-dialog__inner">
+      <div class="board-toolbar">
+        <div>
+          <p class="section-kicker">COORDINATE BOARD</p>
+          <h2>コーディネートボード</h2>
+          <p>お気に入りに選んだ衣装写真を、1枚のボードにまとめます。</p>
+        </div>
+        <div class="board-toolbar__actions">
+          <button id="printBoardButton" class="primary-button" type="button">印刷・PDF保存</button>
+          <button id="copyBoardTextButton" class="secondary-button" type="button">内容をコピー</button>
+        </div>
+      </div>
+
+      <section id="coordinateBoard" class="coordinate-board">
+        <header class="coordinate-board__header">
+          <div>
+            <p class="section-kicker">YUKI'S WARDROBE</p>
+            <h3>Coordinate Selection</h3>
+          </div>
+          <div class="coordinate-board__project">
+            <p id="boardClientName"></p>
+            <p id="boardProjectName"></p>
+            <p id="boardShootDate"></p>
+          </div>
+        </header>
+
+        <div id="boardGrid" class="board-grid"></div>
+
+        <section class="coordinate-board__note">
+          <h4>ご要望・メモ</h4>
+          <p id="boardClientNote">なし</p>
+        </section>
+      </section>
+
+      <p id="boardMessage" class="share-message" aria-live="polite"></p>
     </div>
   </dialog>
 
