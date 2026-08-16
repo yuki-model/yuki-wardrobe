@@ -17,7 +17,7 @@
     <nav>
       <a href="#about">ABOUT</a>
       <a href="#collection">COLLECTION</a>
-      <button id="headerFavoritesButton" class="header-favorites" type="button" aria-label="お気に入りを開く">
+      <button id="headerFavoritesButton" class="header-favorites" type="button" aria-label="選択アイテムを開く">
         ♡ <span id="headerFavoriteCount">0</span>
       </button>
     </nav>
@@ -29,7 +29,7 @@
     <div class="hero__content reveal">
       <p class="eyebrow">MODEL COSTUME COLLECTION</p>
       <h1>YUKI'S<br>WARDROBE</h1>
-      <p class="hero__lead">撮影イメージに合わせて、衣装をお選びください。</p>
+      <p class="hero__lead">撮影イメージに合わせて、衣装を選択できます。</p>
       <a class="hero__button" href="#collection">WARDROBE COLLECTION</a>
     </div>
     <a class="scroll-cue" href="#about" aria-label="下へスクロール">SCROLL <span>↓</span></a>
@@ -42,8 +42,13 @@
         <h2>衣装選びを、<br>もっとスムーズに。</h2>
         <p>
           広告撮影のイメージに合わせて、持参可能な衣装をご覧いただけるワードローブサイトです。
-          気になる衣装は♡で保存し、最後に候補一覧をメールやメッセージでお送りいただけます。
+          気になる衣装は♡で保存し、選定内容をメールやメッセージで共有できます。
         </p>
+        <div class="model-profile" aria-label="モデル情報">
+          <strong>MODEL PROFILE</strong>
+          <span>高橋ユキ</span><span>52歳</span><span>身長 167cm</span>
+          <span>B83・W65・H90</span><span>靴 24.5cm</span><span>洋服 L／11号</span>
+        </div>
       </div>
 
       <div class="editorial-grid">
@@ -69,8 +74,8 @@
         <p class="section-kicker reveal">HOW TO USE</p>
         <div class="steps">
           <div class="step reveal"><span>01</span><h3>絞り込む</h3><p>カテゴリー・色・袖丈・柄から探します。</p></div>
-          <div class="step reveal"><span>02</span><h3>♡で保存</h3><p>気になる衣装をお気に入りに追加します。</p></div>
-          <div class="step reveal"><span>03</span><h3>一覧を送る</h3><p>候補を確認し、メールやLINEで共有します。</p></div>
+          <div class="step reveal"><span>02</span><h3>♡で選択</h3><p>使用候補の衣装を選択アイテムに追加します。</p></div>
+          <div class="step reveal"><span>03</span><h3>内容をまとめる</h3><p>選定内容をPDF、メール、LINEなどで共有できます。</p></div>
         </div>
       </div>
     </section>
@@ -100,7 +105,7 @@
       <div class="catalog__heading">
         <p id="resultCount" class="result-count">読み込み中…</p>
         <button id="collectionFavoritesButton" class="favorite-summary-button" type="button">
-          ♡ お気に入り <span id="collectionFavoriteCount">0</span>
+          ♡ 選択アイテム <span id="collectionFavoriteCount">0</span>
         </button>
       </div>
       <div id="status" class="status">衣装データを読み込んでいます。</div>
@@ -108,12 +113,12 @@
     </section>
   </main>
 
-  <aside id="favoriteTray" class="favorite-tray" aria-label="お気に入り">
+  <aside id="favoriteTray" class="favorite-tray" aria-label="選択アイテム">
     <div>
-      <small>FAVORITES</small>
-      <strong><span id="trayFavoriteCount">0</span>点を保存中</strong>
+      <small>SELECTED ITEMS</small>
+      <strong><span id="trayFavoriteCount">0</span>点を選択中</strong>
     </div>
-    <button id="viewFavoritesButton" type="button">候補一覧を見る</button>
+    <button id="viewFavoritesButton" type="button">選定内容を見る</button>
   </aside>
 
   <dialog id="itemDialog" class="dialog">
@@ -124,28 +129,30 @@
   <dialog id="favoritesDialog" class="dialog favorites-dialog">
     <button class="dialog__close" type="button" aria-label="閉じる">×</button>
     <div class="favorites-dialog__inner">
-      <p class="section-kicker">FAVORITE LIST</p>
-      <h2>衣装候補リスト</h2>
-      <p class="dialog-lead">お名前や撮影情報を入力すると、送信用の文章に含まれます。</p>
+      <p class="section-kicker">SELECTED ITEMS</p>
+      <h2>衣装選定リスト</h2>
+      <p class="dialog-lead">案件情報と選定内容を入力すると、共有文とPDFに反映されます。</p>
 
       <div class="client-form">
-        <label><span>お名前・会社名</span><input id="clientName" type="text" placeholder="例：〇〇株式会社　田中様"></label>
+        <label><span>作成者名</span><input id="clientName" type="text" placeholder="例：〇〇株式会社 田中／高橋ユキ"></label>
         <label><span>案件・撮影名</span><input id="projectName" type="text" placeholder="例：化粧品Web広告"></label>
         <label><span>撮影予定日</span><input id="shootDate" type="date"></label>
-        <label class="client-form__wide"><span>ご要望・メモ</span><textarea id="clientNote" rows="3" placeholder="例：第一候補は白系、予備としてベージュ系を希望"></textarea></label>
+        <label class="client-form__wide"><span>コーディネート・連絡事項</span><small class="form-hint">選択したアイテムのIDを組み合わせて入力できます。同じアイテムを複数のコーディネートに使用できます。</small><textarea id="clientNote" rows="5" placeholder="例）コーディネート1：YW002 ＋ YW005 ＋ YW063&#10;コーディネート2：YW002 ＋ YW018 ＋ YW070&#10;連絡事項：アクセサリーと靴は当日調整"></textarea></label>
       </div>
 
       <section id="printDocument" class="print-document" aria-label="印刷用衣装候補書">
         <div class="print-document__header">
           <div>
             <p class="section-kicker">YUKI'S WARDROBE</p>
-            <h3>衣装候補一覧</h3>
+            <h3>衣装選定リスト</h3>
           </div>
           <p id="printCreatedDate" class="print-created-date"></p>
         </div>
 
+        <p class="print-model-profile">高橋ユキ｜52歳｜身長 167cm｜B83・W65・H90｜靴 24.5cm｜洋服 L／11号</p>
+
         <dl class="print-client-info">
-          <div><dt>お名前・会社名</dt><dd id="printClientName">未入力</dd></div>
+          <div><dt>作成者名</dt><dd id="printClientName">未入力</dd></div>
           <div><dt>案件・撮影名</dt><dd id="printProjectName">未入力</dd></div>
           <div><dt>撮影予定日</dt><dd id="printShootDate">未入力</dd></div>
         </dl>
@@ -153,7 +160,7 @@
         <div id="printFavoritesList" class="print-favorites-list"></div>
 
         <section class="print-note">
-          <h4>ご要望・メモ</h4>
+          <h4>コーディネート・連絡事項</h4>
           <p id="printClientNote">なし</p>
         </section>
 
@@ -164,61 +171,18 @@
       </section>
 
       <div id="favoritesList" class="favorites-list"></div>
-      <p id="emptyFavoritesMessage" class="empty-message">まだお気に入りがありません。</p>
+      <p id="emptyFavoritesMessage" class="empty-message">まだアイテムが選択されていません。</p>
 
       <div class="share-actions">
-        <button id="copyFavoritesButton" class="primary-button" type="button">一覧をコピー</button>
+        <button id="copyFavoritesButton" class="primary-button" type="button">選定内容をコピー</button>
         <button id="emailFavoritesButton" class="secondary-button" type="button">メールで送る</button>
         <button id="shareFavoritesButton" class="secondary-button" type="button">共有する</button>
-        <button id="boardButton" class="secondary-button" type="button">コーディネートボード</button>
-        <button id="printFavoritesButton" class="secondary-button" type="button">印刷・PDF保存</button>
+        <button id="printFavoritesButton" class="secondary-button" type="button">選定内容をPDFにまとめる</button>
         <button id="clearFavoritesButton" class="text-button danger-button" type="button">すべて解除</button>
       </div>
       <p id="shareMessage" class="share-message" aria-live="polite"></p>
     </div>
   </dialog>
-
-
-  <dialog id="boardDialog" class="dialog board-dialog">
-    <button class="dialog__close" type="button" aria-label="閉じる">×</button>
-    <div class="board-dialog__inner">
-      <div class="board-toolbar">
-        <div>
-          <p class="section-kicker">COORDINATE BOARD</p>
-          <h2>コーディネートボード</h2>
-          <p>お気に入りに選んだ衣装写真を、1枚のボードにまとめます。</p>
-        </div>
-        <div class="board-toolbar__actions">
-          <button id="printBoardButton" class="primary-button" type="button">印刷・PDF保存</button>
-          <button id="copyBoardTextButton" class="secondary-button" type="button">内容をコピー</button>
-        </div>
-      </div>
-
-      <section id="coordinateBoard" class="coordinate-board">
-        <header class="coordinate-board__header">
-          <div>
-            <p class="section-kicker">YUKI'S WARDROBE</p>
-            <h3>Coordinate Selection</h3>
-          </div>
-          <div class="coordinate-board__project">
-            <p id="boardClientName"></p>
-            <p id="boardProjectName"></p>
-            <p id="boardShootDate"></p>
-          </div>
-        </header>
-
-        <div id="boardGrid" class="board-grid"></div>
-
-        <section class="coordinate-board__note">
-          <h4>ご要望・メモ</h4>
-          <p id="boardClientNote">なし</p>
-        </section>
-      </section>
-
-      <p id="boardMessage" class="share-message" aria-live="polite"></p>
-    </div>
-  </dialog>
-
   <template id="cardTemplate">
     <article class="card">
       <div class="card__media">
