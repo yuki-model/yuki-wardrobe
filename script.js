@@ -1,5 +1,5 @@
 
-const API_URL = "https://script.google.com/macros/s/AKfycbwffzjetYEb8UzLJb2MAsGFKCWCNWGbccDubDdE2xNTuDk-unHNishI_75NiHnIwooF_A/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbxS9Mu4qRR6grUPcHGbFtPH4iLwNo8n2_kL38Rz4RSPFEbE7QEeFHCnpC7IhTwIR1VZ/exec";
 const STORAGE_KEY = "yukiWardrobeFavoritesV3";
 
 const NO_IMAGE_HTML = `
