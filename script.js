@@ -61,17 +61,7 @@ const els = {
   printShootDate: q("#printShootDate"),
   printClientNote: q("#printClientNote"),
   printShareText: q("#printShareText"),
-  printFavoritesList: q("#printFavoritesList"),
-  boardButton: q("#boardButton"),
-  boardDialog: q("#boardDialog"),
-  boardGrid: q("#boardGrid"),
-  boardClientName: q("#boardClientName"),
-  boardProjectName: q("#boardProjectName"),
-  boardShootDate: q("#boardShootDate"),
-  boardClientNote: q("#boardClientNote"),
-  printBoardButton: q("#printBoardButton"),
-  copyBoardTextButton: q("#copyBoardTextButton"),
-  boardMessage: q("#boardMessage")
+  printFavoritesList: q("#printFavoritesList")
 };
 
 function loadFavorites() {
@@ -100,6 +90,11 @@ const itemId = (item, index = 0) => field(item, ["ID", "Id", "id"]) || `item-${i
 const itemName = item =>
   field(item, ["サブカテゴリ", "商品名", "アイテム名", "名称"]) ||
   field(item, ["カテゴリ"]) || "衣装";
+
+function isPublished(item) {
+  const value = item["公開"];
+  return value === true || ["true", "1", "yes", "公開"].includes(String(value ?? "").trim().toLowerCase());
+}
 
 function driveImageUrl(url) {
   if (!url) return "";
@@ -156,9 +151,13 @@ function applyFilters() {
   const query = els.search.value.trim().toLowerCase();
 
   state.filtered = state.items.filter(item => {
-    const searchable = Object.entries(item)
-      .filter(([key]) => !["ブランド", "サイズ"].includes(key))
-      .map(([, value]) => value).join(" ").toLowerCase();
+    const searchable = [
+      itemName(item),
+      field(item, ["カテゴリ"]), field(item, ["色", "カラー"]),
+      field(item, ["柄"]), field(item, ["袖丈", "袖"]),
+      field(item, ["季節"]), field(item, ["テイスト"]),
+      field(item, ["memo", "メモ"])
+    ].join(" ").toLowerCase();
 
     return (!query || searchable.includes(query))
       && containsSelected(field(item, ["カテゴリ"]), els.category.value)
@@ -222,7 +221,7 @@ function updateHeart(button, id) {
   const active = state.favorites.has(String(id));
   button.classList.toggle("is-favorite", active);
   button.textContent = active ? "♥" : "♡";
-  button.setAttribute("aria-label", active ? "お気に入りから解除" : "お気に入りに追加");
+  button.setAttribute("aria-label", active ? "選択を解除" : "選択アイテムに追加");
 }
 
 function toggleFavorite(id) {
@@ -271,7 +270,7 @@ function openItem(item, id) {
     ["袖丈", field(item, ["袖丈", "袖"])],
     ["季節", field(item, ["季節"])],
     ["テイスト", field(item, ["テイスト"])],
-    ["素材", field(item, ["素材"])]
+    ["memo", field(item, ["memo", "メモ"])]
   ].filter(([, value]) => value);
 
   const urls = imageUrls(item);
@@ -296,7 +295,6 @@ function openItem(item, id) {
         <dl class="detail-list">
           ${details.map(([label, value]) => `<div><dt>${label}</dt><dd>${value}</dd></div>`).join("")}
         </dl>
-        ${field(item, ["メモ"]) ? `<p>${field(item, ["メモ"])}</p>` : ""}
         <button id="detailFavoriteButton" class="primary-button favorite-detail-button" type="button"></button>
       </div>
     </div>`;
@@ -307,7 +305,7 @@ function openItem(item, id) {
   const refreshDetailButton = () => {
     const active = state.favorites.has(String(id));
     detailButton.classList.toggle("is-favorite", active);
-    detailButton.textContent = active ? "♥ お気に入りから解除" : "♡ お気に入りに追加";
+    detailButton.textContent = active ? "♥ 選択を解除" : "♡ 選択アイテムに追加";
   };
 
   refreshDetailButton();
@@ -341,7 +339,7 @@ function renderFavoritesDialog() {
       ${url ? `<img class="favorite-row__image" src="${url}" alt="">` : `<div class="favorite-row__image">${NO_IMAGE_HTML}</div>`}
       <div>
         <h3>${itemName(item)}</h3>
-        <p>No.${field(item, ["ID"]) || index + 1} ／ ${[field(item, ["カテゴリ"]), field(item, ["色"]), field(item, ["柄"])].filter(Boolean).join(" ／ ")}</p>
+        <p>${field(item, ["ID"]) || index + 1} ／ ${[field(item, ["カテゴリ"]), field(item, ["色"]), field(item, ["柄"])].filter(Boolean).join(" ／ ")}</p>
       </div>
       <button type="button">解除</button>`;
 
@@ -351,7 +349,6 @@ function renderFavoritesDialog() {
       updateFavoriteUI();
       renderCards();
       renderFavoritesDialog();
-      if (els.boardDialog.open) buildCoordinateBoard();
     });
     els.favoritesList.append(row);
   });
@@ -370,21 +367,21 @@ function buildShareText() {
   const items = favoriteItems();
   const lines = items.map((item, index) => {
     const dataIndex = state.items.indexOf(item);
-    return `${index + 1}. No.${field(item, ["ID"]) || dataIndex + 1}｜${itemName(item)}｜${field(item, ["カテゴリ"])}｜${field(item, ["色"])}`;
+    return `${index + 1}. ${field(item, ["ID"]) || dataIndex + 1}｜${itemName(item)}｜${field(item, ["カテゴリ"])}｜${field(item, ["色"])}`;
   });
 
   const info = [
-    els.clientName.value.trim() ? `お名前・会社名：${els.clientName.value.trim()}` : "",
+    els.clientName.value.trim() ? `作成者名：${els.clientName.value.trim()}` : "",
     els.projectName.value.trim() ? `案件・撮影名：${els.projectName.value.trim()}` : "",
     els.shootDate.value ? `撮影予定日：${els.shootDate.value}` : ""
   ].filter(Boolean);
 
   return [
-    "【YUKI'S WARDROBE 衣装候補】",
+    "【YUKI'S WARDROBE 衣装選定リスト】",
     ...info,
     "",
-    ...(lines.length ? lines : ["衣装候補はまだ選択されていません。"]),
-    els.clientNote.value.trim() ? `\nご要望・メモ：\n${els.clientNote.value.trim()}` : "",
+    ...(lines.length ? lines : ["選択アイテムはまだありません。"]),
+    els.clientNote.value.trim() ? `\nコーディネート・連絡事項：\n${els.clientNote.value.trim()}` : "",
     "",
     `サイト：${location.href.split("#")[0]}`
   ].filter(value => value !== "").join("\n");
@@ -393,14 +390,14 @@ function buildShareText() {
 async function copyFavorites() {
   try {
     await navigator.clipboard.writeText(buildShareText());
-    els.shareMessage.textContent = "衣装候補一覧をコピーしました。LINEなどに貼り付けられます。";
+    els.shareMessage.textContent = "選定内容をコピーしました。LINEなどに貼り付けられます。";
   } catch {
     els.shareMessage.textContent = "コピーできませんでした。ブラウザの権限をご確認ください。";
   }
 }
 
 function emailFavorites() {
-  const subject = encodeURIComponent(`衣装候補${els.projectName.value.trim() ? "｜" + els.projectName.value.trim() : ""}`);
+  const subject = encodeURIComponent(`衣装選定リスト${els.projectName.value.trim() ? "｜" + els.projectName.value.trim() : ""}`);
   const body = encodeURIComponent(buildShareText());
   location.href = `mailto:?subject=${subject}&body=${body}`;
 }
@@ -409,7 +406,7 @@ async function shareFavorites() {
   const text = buildShareText();
   if (navigator.share) {
     try {
-      await navigator.share({ title: "YUKI'S WARDROBE 衣装候補", text });
+      await navigator.share({ title: "YUKI'S WARDROBE 衣装選定リスト", text });
       els.shareMessage.textContent = "共有画面を開きました。";
     } catch (error) {
       if (error.name !== "AbortError") els.shareMessage.textContent = "共有できませんでした。";
@@ -453,7 +450,7 @@ function buildPrintDocument() {
         : `<div class="print-favorite-card__placeholder">${NO_IMAGE_HTML}</div>`}
       <div>
         <h4>${listIndex + 1}. ${itemName(item)}</h4>
-        <p>No.${field(item, ["ID"]) || dataIndex + 1}</p>
+        <p>${field(item, ["ID"]) || dataIndex + 1}</p>
         <p>${[
           field(item, ["カテゴリ"]),
           field(item, ["色"]),
@@ -467,7 +464,7 @@ function buildPrintDocument() {
 
   if (!items.length) {
     const empty = document.createElement("p");
-    empty.textContent = "衣装候補はまだ選択されていません。";
+    empty.textContent = "選択アイテムはまだありません。";
     els.printFavoritesList.append(empty);
   }
 }
@@ -487,93 +484,6 @@ function printFavoritesDocument() {
 }
 
 
-function buildCoordinateBoard() {
-  const items = favoriteItems();
-
-  els.boardClientName.textContent =
-    els.clientName.value.trim() ? `お名前・会社名：${els.clientName.value.trim()}` : "";
-  els.boardProjectName.textContent =
-    els.projectName.value.trim() ? `案件・撮影名：${els.projectName.value.trim()}` : "";
-  els.boardShootDate.textContent =
-    els.shootDate.value ? `撮影予定日：${formatDateForPrint(els.shootDate.value)}` : "";
-  els.boardClientNote.textContent = els.clientNote.value.trim() || "なし";
-
-  els.boardGrid.replaceChildren();
-
-  if (!items.length) {
-    const empty = document.createElement("div");
-    empty.className = "board-empty";
-    empty.textContent = "お気に入りの衣装を選ぶと、ここにコーディネートボードが表示されます。";
-    els.boardGrid.append(empty);
-    return;
-  }
-
-  items.forEach((item, listIndex) => {
-    const dataIndex = state.items.indexOf(item);
-    const url = imageUrl(item);
-    const card = document.createElement("article");
-    card.className = "board-item";
-    card.innerHTML = `
-      <div class="board-item__image">
-        ${url ? `<img src="${url}" alt="${itemName(item)}">` : NO_IMAGE_HTML}
-      </div>
-      <div class="board-item__content">
-        <p class="board-item__category">${field(item, ["カテゴリ"]) || "ITEM"}</p>
-        <h4>${itemName(item)}</h4>
-        <p class="board-item__meta">
-          No.${field(item, ["ID"]) || dataIndex + 1}
-          ${field(item, ["色"]) ? ` ／ ${field(item, ["色"])}` : ""}
-          ${field(item, ["柄"]) ? ` ／ ${field(item, ["柄"])}` : ""}
-        </p>
-      </div>`;
-
-    const img = card.querySelector("img");
-    if (img) {
-      img.addEventListener("error", () => {
-        img.parentElement.innerHTML = NO_IMAGE_HTML;
-      });
-    }
-
-    els.boardGrid.append(card);
-  });
-}
-
-function openCoordinateBoard() {
-  buildCoordinateBoard();
-  els.boardMessage.textContent = "";
-  els.boardDialog.showModal();
-  document.body.classList.add("dialog-open");
-}
-
-function printCoordinateBoard() {
-  buildCoordinateBoard();
-
-  const images = [...els.boardGrid.querySelectorAll("img")];
-  const waits = images.map(img => {
-    if (img.complete) return Promise.resolve();
-    return new Promise(resolve => {
-      img.addEventListener("load", resolve, { once: true });
-      img.addEventListener("error", resolve, { once: true });
-      setTimeout(resolve, 1800);
-    });
-  });
-
-  Promise.all(waits).then(() => {
-    document.body.classList.add("printing-board");
-    window.print();
-    setTimeout(() => document.body.classList.remove("printing-board"), 500);
-  });
-}
-
-async function copyBoardText() {
-  try {
-    await navigator.clipboard.writeText(buildShareText());
-    els.boardMessage.textContent = "コーディネート内容をコピーしました。";
-  } catch {
-    els.boardMessage.textContent = "コピーできませんでした。";
-  }
-}
-
 function closeDialog(dialog) {
   dialog.close();
   document.body.classList.remove("dialog-open");
@@ -582,7 +492,6 @@ function closeDialog(dialog) {
 [els.clientName, els.projectName, els.shootDate, els.clientNote]
   .forEach(control => control.addEventListener("input", () => {
     buildPrintDocument();
-    if (els.boardDialog.open) buildCoordinateBoard();
   }));
 
 [els.search, els.category, els.color, els.sleeve, els.pattern]
@@ -604,22 +513,18 @@ document.querySelectorAll(".dialog__close").forEach(button =>
   button.addEventListener("click", () => closeDialog(button.closest("dialog")))
 );
 
-[els.itemDialog, els.favoritesDialog, els.boardDialog].forEach(dialog =>
+[els.itemDialog, els.favoritesDialog].forEach(dialog =>
   dialog.addEventListener("click", event => {
     if (event.target === dialog) closeDialog(dialog);
   })
 );
-
-els.boardButton.addEventListener("click", openCoordinateBoard);
-els.printBoardButton.addEventListener("click", printCoordinateBoard);
-els.copyBoardTextButton.addEventListener("click", copyBoardText);
 
 els.copyFavorites.addEventListener("click", copyFavorites);
 els.emailFavorites.addEventListener("click", emailFavorites);
 els.shareFavorites.addEventListener("click", shareFavorites);
 els.printFavorites.addEventListener("click", printFavoritesDocument);
 els.clearFavorites.addEventListener("click", () => {
-  if (!state.favorites.size || confirm("お気に入りをすべて解除しますか？")) {
+  if (!state.favorites.size || confirm("選択アイテムをすべて解除しますか？")) {
     state.favorites.clear();
     saveFavorites();
     updateFavoriteUI();
@@ -649,7 +554,7 @@ fetch(API_URL, { redirect: "follow" })
   .then(data => {
     if (!Array.isArray(data)) throw new Error("Invalid data");
     state.items = data.filter(item =>
-      Object.values(item).some(value => String(value ?? "").trim() !== "")
+      isPublished(item) && Object.values(item).some(value => String(value ?? "").trim() !== "")
     );
     setupFilters();
     applyFilters();
